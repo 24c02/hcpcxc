@@ -76,6 +76,10 @@ def handle_slack_token(code, redirect_uri)
 end
 
 get '/optout' do
+  erb :optout
+end
+
+post '/optout' do
   redirect_uri = "https://hcpcxc.hackclub.com/optout/callback"
   redirect slack_authorize_url(redirect_uri).to_s
 end
