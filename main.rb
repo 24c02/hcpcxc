@@ -70,7 +70,8 @@ def handle_slack_token(code, redirect_uri)
   user_data = JSON.parse(user_response.body)
   return nil unless user_data["ok"]
 
-  Norairrecord.table(ENV["AIRTABLE_PAT"], "appshKVhuW5Wcurir", "tblPSdTvQWOSva7dQ").upsert({"slack_id" => user_data["authed_user"]["id"]}, %w(slack_id))
+
+  Norairrecord.table(ENV["AIRTABLE_PAT"], "appshKVhuW5Wcurir", "tblPSdTvQWOSva7dQ").upsert({"slack_id" => user_data["user"]["id"]}, %w(slack_id))
   
 end
 
