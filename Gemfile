@@ -13,9 +13,10 @@ gem "yaml", "~> 0.4.0"
 
 gem "sinatra-contrib", "~> 4.1"
 
-
 gem "faraday", "~> 2.13"
 
 gem "faker", "~> 3.5"
 
 gem "activesupport", "~> 8.0"
+
+gem "norairrecord", "~> 0.3.0"
