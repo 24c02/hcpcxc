@@ -1,0 +1,107 @@
+.postcard {
+    background: #ffffcc;
+    border: 1px solid #cccc99;
+    width: 800px;
+    min-height: 600px;
+    margin: 20px auto;
+    padding: 25px;
+    font-family: "Times New Roman", serif;
+    color: #333333;
+    text-align: left;
+    line-height: 1.5;
+    position: relative;
+    box-shadow: none;
+    max-width: 95%;
+    box-sizing: border-box;
+}
+
+.postcard:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: repeating-linear-gradient(to right, #cccc99, #cccc99 1px, transparent 1px, transparent 2px);
+}
+
+.postcard:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: repeating-linear-gradient(to right, #cccc99, #cccc99 1px, transparent 1px, transparent 2px);
+}
+
+.postcard .stamp {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 80px;
+    height: 100px;
+    background: url('/stamp.png') no-repeat;
+    background-size: contain;
+    transform: rotate(5deg);
+}
+
+.postcard .return-address {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 12px;
+    line-height: 1.2;
+    color: #666666;
+    border-bottom: 1px dotted #cccc99;
+    padding-bottom: 2px;
+    width: auto;
+    white-space: nowrap;
+}
+
+.postcard .destination-address {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    font-size: 12px;
+    line-height: 1.2;
+    text-align: right;
+    width: 150px;
+}
+
+.postcard .content {
+    margin: 120px 25px 100px 25px;
+    min-height: 300px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+pre {
+    font-size: 11px;
+}
+
+@media screen and (max-width: 600px) {
+    .postcard {
+        padding: 15px;
+        min-height: 400px;
+    }
+    
+    .postcard .content {
+        margin: 80px 15px 60px 15px;
+        min-height: 200px;
+    }
+    
+    .postcard .stamp {
+        width: 60px;
+        height: 80px;
+    }
+    
+    .postcard .return-address,
+    .postcard .destination-address {
+        font-size: 11px;
+    }
+}
+
+.header>h1 {
+    display: inline;
+}
