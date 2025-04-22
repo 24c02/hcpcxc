@@ -19,6 +19,7 @@
   take the red pill and get nice messages from your friends!
   <% if @person.postcards.empty? %>
     <% if @person.first_time? %>
+    <br/><big>HEY!!</big>
       <br/>(go set your current address <a href="https://forms.hackclub.com/update-address" target="_blank">here</a> BEFORE you opt in!)
     <% else %>
       (the postcard(s) won't be sent until you opt in!)
