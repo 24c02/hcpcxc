@@ -13,11 +13,18 @@
     <p>
       you have <%= @person.postcards.count == 1 ? "a postcard" : "#{@person.postcards.count} postcards" %> pending!
     </p>
-    <p><b>N.B.:</b> if the address Slack asked you about was wrong, <a href="https://forms.hackclub.com/update-address">change it here</a> BEFORE you opt in! (use the email above)</p>
+    <p><b>N.B.:</b> if the address Slack asked you about was wrong, <a href="https://forms.hackclub.com/update-address" target="_blank">change it here</a> BEFORE you opt in! (use the email above)</p>
   <% end %>
   before you is a matrix-style choice. <br/>
   take the red pill and get nice messages from your friends!
-  <% unless @person.postcards.empty? %>(the postcard(s) won't be sent until you do...)<% end %>
+  <% if @person.postcards.empty? %>
+    <% if @person.first_time? %>
+      <br/>(go set your current address <a href="https://forms.hackclub.com/update-address" target="_blank">here</a> BEFORE you opt in!)
+    <% else %>
+      (the postcard(s) won't be sent until you opt in!)
+    <% end %>
+  <% end %>
+
   <form action="<%= @person.build_rndk_url %>?opt=in" method="post">
     <button type="submit">my address is correct & i'm ready!</button>
   </form>
