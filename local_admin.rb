@@ -24,7 +24,8 @@ post '/create_postcard' do
     postcard = Postcard.new(
         "recipient" => [person.id],
         "master_rollup" => %w(reccyROQ0Cv8hZeUO),
-        "private_sender_info" => params[:sender_info]
+        "private_sender_info" => params[:sender_info],
+        "status" => person.first_time? ? "pending_opt_in" : "awaiting_mailout"
     )
     postcard.save
     @flash = "postcard created"
