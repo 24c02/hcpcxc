@@ -1,11 +1,13 @@
 require 'sinatra'
+require 'sinatra/contrib'
+
 require 'faraday'
 require 'faker'
 require 'active_support/inflector'
 require 'active_support/core_ext/string'
 require 'securerandom'
 require 'json'
-require 'norairrecord'
+require_relative './models'
 
 def hit_ip_dot(ip)
     @ip_conn ||= Faraday.new(url: "https://ip.hackclub.com/ip") do |c|
@@ -23,7 +25,8 @@ def ipfo(field, default)
 end
 
 before do
-    @count = 0 # TODO: make this an actual number
+    MasterRollup.refresh
+    @count = MasterRollup["mailed_postcards_count"]
 end
 
 get '/' do
@@ -37,11 +40,11 @@ get '/' do
     erb :index
 end
 
-def slack_authorize_url(redirect_uri)
+def slack_authorize_url(redirect_uri, state)
   params = {
     client_id: ENV["SLACK_CLIENT_ID"],
     redirect_uri: redirect_uri,
-    state: SecureRandom.hex(24),
+    state: state,
     user_scope: "users.profile:read,users:read,users:read.email"
   }
 
@@ -70,33 +73,80 @@ def handle_slack_token(code, redirect_uri)
   user_data = JSON.parse(user_response.body)
   return nil unless user_data["ok"]
 
-
-  Norairrecord.table(ENV["AIRTABLE_PAT"], "appshKVhuW5Wcurir", "tblPSdTvQWOSva7dQ").upsert({"slack_id" => user_data["user"]["id"]}, %w(slack_id))
-  
+  user_data["user"]
 end
 
-get '/optout' do
-  erb :optout
+# get '/optout' do
+#   erb :optout
+# end
+
+# post '/optout' do
+#   redirect slack_authorize_url(ENV["SLACK_REDIRECT_URL"], "optout").to_s
+# end
+
+get '/login' do
+  redirect slack_authorize_url(ENV["SLACK_REDIRECT_URL"], "me").to_s
 end
 
-post '/optout' do
-  redirect_uri = "https://hcpcxc.hackclub.com/optout/callback"
-  redirect slack_authorize_url(redirect_uri).to_s
-end
+get '/slack/callback' do
+    case params[:state]
+    # when "optout"
+    #   user_data = handle_slack_token(params[:code], ENV["SLACK_REDIRECT_URL"])
 
-get '/optout/callback' do
-  if params[:error]
-    @error = params[:error]
-    erb :optout_error
-  else
-    email = handle_slack_token(params[:code], "https://hcpcxc.hackclub.com/optout/callback")
-    if email
-      @email = email
-      erb :optout_success
-    else
-      @error = "slack auth failed"
-      erb :optout_error
+    #   if user_data
+    #     OptOut.upsert({"slack_id" => user_data["id"]}, %w(slack_id))
+    #     erb :optout_success
+    #   else
+    #     @error = "slack auth failed"
+    #     erb :optout_error
+    #   end
+    when "me"
+      user_data = handle_slack_token(params[:code], ENV["SLACK_REDIRECT_URL"])
+
+      if user_data
+        person = Person.find_or_create_by_slack_id(user_data["id"])
+        redirect "/me/#{person["rndK"]}"
+      else
+        @error = "couldn't sign you in..?"
+        erb :error
+      end
+        else
+      @error = "what are you trying to do?"
+      erb :error
     end
+end
+
+helpers do
+  def set_person
+    raise "seems like you're missing something..." unless params[:rndK]
+    @person = Person.by_rndK(params[:rndK])
+    raise "just what are you trying to pull, buster?" unless @person
   end
 end
 
+before '/me/:rndK*' do
+  set_person
+end
+
+get '/me/:rndK' do
+  erb :me
+end
+
+post '/me/:rndK' do
+  if params[:opt]
+  case params[:opt]
+    when "in"
+      @person["status"] = "opted_in"
+      @flash = "you're in!"
+      @person.refresh_loops_address
+      @person.save
+    when "out"
+      @flash = "....okay, then"
+      @person["status"] = "opted_out"
+      @person.save
+    else
+      raise "what are you trying to do?"
+    end
+  end
+  erb :me
+end

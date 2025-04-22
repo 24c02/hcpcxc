@@ -11,6 +11,11 @@
 <h1>c</h1>ard e<h1>xc</h1>hange
 <sup>(new 2025!)</sup>
 </div>
+<% if @flash %>
+    <div style="color: maroon; border: 1px solid maroon; padding: 10px; margin: 10px;">
+    <%= @flash %>
+    </div>
+<% end %>
 <h3><%= @count %> <%= "postcard".pluralize(@count) %> served and counting...</h3>
 <%= yield %>
 </body>

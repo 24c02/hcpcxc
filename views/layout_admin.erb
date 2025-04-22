@@ -1,0 +1,13 @@
+<html>
+<head>
+    <title>hcpcxc admin</title>
+</head>
+<body>
+<% if @flash %>
+    <div style="color: maroon; border: 1px solid maroon; padding: 10px; margin: 10px;">
+    <%= @flash %>
+    </div>
+<% end %>
+<%= yield %>
+</body>
+</html>

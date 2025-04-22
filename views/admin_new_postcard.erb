@@ -1,0 +1,15 @@
+<h1>new postcard</h1>
+
+<form action="/create_postcard" method="post">
+    <div>
+        <label for="slack_id">recipient slack id:</label>
+        <input type="text" id="slack_id" name="slack_id" required>
+    </div>
+
+    <div>
+        <label for="sender_info">private sender info:</label>
+        <textarea id="sender_info" name="sender_info" rows="4" required></textarea>
+    </div>
+
+    <button type="submit">create postcard</button>
+</form>

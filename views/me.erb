@@ -1,0 +1,60 @@
+<a href="/"> < back to the main page </a>
+
+<p>you're currently signed in as <%= @person["email"]%>.</p>
+<% case @person["status"] %>
+<% when "opted_out" %>
+  <p>
+    you're opted out.
+    <form action="<%= @person.build_rndk_url %>?opt=in" method="post">
+      <button type="submit">wait, i changed my mind!</button>
+    </form>
+  </p>
+<% when "dunno_yet" %>
+  <% unless @person.postcards.empty? %>
+    <p>
+      you have <%= @person.postcards.count == 1 ? "a postcard" : "#{@person.postcards.count} postcards" %> pending!
+    </p>
+    <p><b>N.B.:</b> if the address Slack asked you about was wrong, <a href="https://forms.hackclub.com/update-address">change it here</a> BEFORE you opt in! (use the email above)</p>
+  <% end %>
+  before you is a matrix-style choice. <br/>
+  take the red pill and get nice messages from your friends!
+  <% unless @person.postcards.empty? %>(the postcard(s) won't be sent until you do...)<% end %>
+  <form action="<%= @person.build_rndk_url %>?opt=in" method="post">
+    <button type="submit">my address is correct & i'm ready!</button>
+  </form>
+  or.... opt out and get nothing. never hear about this program again.
+  <form action="<%= @person.build_rndk_url %>?opt=out" method="post">
+    <button type="submit">opt out</button>
+  </form>
+<% when "opted_in" %>
+  <p>
+    you're opted in! ^_^
+    <!--  <form action="<%= @person.build_rndk_url %>?opt=out" method="post">
+  <button type="submit">on second thought, i don't want mail</button>
+</form> -->
+  </p>
+<% else %>
+  huh?
+<% end %>
+<% if @person.postcards.empty? %>
+  <p>
+    no postcards yet...
+  </p>
+<% else %>
+  postcards:
+  <ul>
+    <% @person.postcards.each do |postcard| %>
+      <li>
+        <b>#<%= postcard['id']%></b> – 
+        <% case postcard['status'] %>
+        <% when "pending_opt_in" %>
+          waiting for you to opt in!
+        <% when "awaiting_mailout" %>
+          awaiting mailout...
+        <% when "mailed" %>
+          sent!
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
