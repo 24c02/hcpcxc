@@ -1,5 +1,4 @@
-<a href="/"> < back to the main page </a>
-
+<a href="/"> &lt; back to the main page </a>
 <p>you're currently signed in as <%= @person["email"]%>.</p>
 <% case @person["status"] %>
 <% when "opted_out" %>
@@ -46,8 +45,8 @@
     <% @person.postcards.each do |postcard| %>
       <li>
         <b>#<%= postcard['id']%></b> – 
-        <% case postcard['status'] %>
-        <% when "pending_opt_in" %>
+        <% case postcard['status']
+           when "pending_opt_in" %>
           waiting for you to opt in!
         <% when "awaiting_mailout" %>
           awaiting mailout...
