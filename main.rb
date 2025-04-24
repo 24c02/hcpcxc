@@ -26,7 +26,7 @@ end
 
 before do
     MasterRollup.refresh
-    @count = MasterRollup["mailed_postcards_count"]
+    @count = MasterRollup["mailed_postcards_count"] + MasterRollup["hand_delivered_count"]
 end
 
 get '/' do
