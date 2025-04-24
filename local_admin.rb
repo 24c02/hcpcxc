@@ -12,7 +12,7 @@ get '/create_postcard' do
 end
 
 post '/create_postcard' do
-    person = Person.find_or_create_by_slack_id(params[:slack_id])
+    person = Person.find_or_create_by_slack_id(params[:slack_id].upcase)
 
     if person.opted_out?
         @flash = "<a href='#{person.airtable_url}'>recipient</a> is opted out"
@@ -28,6 +28,6 @@ post '/create_postcard' do
         "status" => person.first_time? ? "pending_opt_in" : "awaiting_mailout"
     )
     postcard.save
-    @flash = "postcard created"
+    @flash = "<a href='#{postcard.airtable_url}'>postcard</a> created"
     erb :admin_new_postcard, layout: :layout_admin
 end

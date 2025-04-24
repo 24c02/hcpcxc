@@ -11,7 +11,7 @@ class FakeSlackModel
 
         data = JSON.parse(response.body)
 
-        return nil unless data["ok"]
+        raise "no slack??" unless data["ok"]
 
         new.tap { |instance| instance.slack_response = data["user"] }
     end
