@@ -2,4 +2,15 @@
 
 <ul>
     <li><a href="/create_postcard">enter a new postcard</a></li>
+    <li><a href="/generate-csv">generate csv</a> of letters awaiting mailout</li>
+    <li>
+        <form action="/mark-mailed" method="post">
+            <button type="submit">mark all pending letters mailed</button>
+        </form>
+    </li>
+    <li>
+        <form action="/queue-postcards" method="post">
+            <button type="submit">queue letters</button>
+        </form>
+    </li>
 </ul>

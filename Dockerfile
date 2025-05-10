@@ -1,11 +1,7 @@
-FROM ruby:3.3.6
+from 24c02/snarf:latest
 
-WORKDIR /sidequests
-COPY Gemfile Gemfile.lock /sidequests/
-RUN bundle install
+copy . /app
 
-COPY . /sidequests
+workdir /app
 
-CMD ["bundle", "exec", "rackup", "--host", "0.0.0.0", "-p", "4567"]
-
-EXPOSE 4567
+run bundle install
