@@ -39,6 +39,7 @@ def create_card_in_theseus(**details)
   conn = Faraday.new(url: "https://mail.hackclub.com") do |f|
     f.request :json
     f.response :json
+    f.response :raise_error
     f.response :logger
   end
 

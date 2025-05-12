@@ -1,43 +1,54 @@
-require 'sinatra'
-require 'sinatra/contrib'
+require "sinatra"
+require "sinatra/contrib"
 
-require 'faraday'
-require 'faker'
-require 'active_support/inflector'
-require 'active_support/core_ext/string'
-require 'securerandom'
-require 'json'
-require_relative './models'
+require "faraday"
+require "faker"
+require "active_support"
+require "active_support/inflector"
+require "active_support/core_ext/string"
+require "active_support/number_helper"
+require "securerandom"
+require "json"
+require_relative "./models"
+
+include ActiveSupport::NumberHelper
 
 def hit_ip_dot(ip)
-    @ip_conn ||= Faraday.new(url: "https://ip.hackclub.com/ip") do |c|
-        c.response :raise_error
-        c.response :json, parser_options: { symbolize_names: true }
-        c.adapter Faraday.default_adapter
-        c.options.timeout = 2
-    end
+  @ip_conn ||= Faraday.new(url: "https://ip.hackclub.com/ip") do |c|
+    c.response :raise_error
+    c.response :json, parser_options: { symbolize_names: true }
+    c.adapter Faraday.default_adapter
+    c.options.timeout = 2
+  end
 
-    @ip_conn.get(ip).body
+  @ip_conn.get(ip).body
 end
 
 def ipfo(field, default)
-    @ip&.[](field) || default
+  @ip&.[](field) || default
 end
 
 before do
-    MasterRollup.refresh
-    @count = MasterRollup["mailed_postcards_count"] + MasterRollup["hand_delivered_count"]
+  MasterRollup.refresh
+  @theseus_data = Faraday.new("https://mail.hackclub.com/api/v1/") do |c|
+    c.headers["Authorization"] = "Bearer #{ENV["THESEUS_API_KEY"]}"
+    c.response :json, parser_options: { symbolize_names: true }
+    c.adapter Faraday.default_adapter
+    c.options.timeout = 2
+  end.get("tags/hcpcxc").body
+  @count = (@theseus_data.dig(:letters, :count) || 0) + MasterRollup["hand_delivered_count"]
+  @postage_amount = (@theseus_data.dig(:letters, :postage_cost) || 0)
 end
 
-get '/' do
-    @ip = begin
-        hit_ip_dot(request.ip)
+get "/" do
+  @ip = begin
+      hit_ip_dot(request.ip)
     rescue
-        {}
+      {}
     end
 
-    @street = Faker::Address.street_address
-    erb :index
+  @street = Faker::Address.street_address
+  erb :index
 end
 
 def slack_authorize_url(redirect_uri, state)
@@ -45,7 +56,7 @@ def slack_authorize_url(redirect_uri, state)
     client_id: ENV["SLACK_CLIENT_ID"],
     redirect_uri: redirect_uri,
     state: state,
-    user_scope: "users.profile:read,users:read,users:read.email"
+    user_scope: "users.profile:read,users:read,users:read.email",
   }
 
   URI.parse("https://slack.com/oauth/v2/authorize?#{params.to_query}")
@@ -53,12 +64,12 @@ end
 
 def handle_slack_token(code, redirect_uri)
   response = Faraday.post("https://slack.com/api/oauth.v2.access") do |req|
-    req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    req.headers["Content-Type"] = "application/x-www-form-urlencoded"
     req.body = {
       client_id: ENV["SLACK_CLIENT_ID"],
       client_secret: ENV["SLACK_CLIENT_SECRET"],
       code: code,
-      redirect_uri: redirect_uri
+      redirect_uri: redirect_uri,
     }.to_query
   end
 
@@ -66,8 +77,8 @@ def handle_slack_token(code, redirect_uri)
   return nil unless data["ok"]
 
   user_response = Faraday.get("https://slack.com/api/users.info") do |req|
-    req.headers['Authorization'] = "Bearer #{data['authed_user']['access_token']}"
-    req.params = { user: data['authed_user']['id'] }
+    req.headers["Authorization"] = "Bearer #{data["authed_user"]["access_token"]}"
+    req.params = { user: data["authed_user"]["id"] }
   end
 
   user_data = JSON.parse(user_response.body)
@@ -84,36 +95,36 @@ end
 #   redirect slack_authorize_url(ENV["SLACK_REDIRECT_URL"], "optout").to_s
 # end
 
-get '/login' do
+get "/login" do
   redirect slack_authorize_url(ENV["SLACK_REDIRECT_URL"], "me").to_s
 end
 
-get '/slack/callback' do
-    case params[:state]
-    # when "optout"
-    #   user_data = handle_slack_token(params[:code], ENV["SLACK_REDIRECT_URL"])
+get "/slack/callback" do
+  case params[:state]
+  # when "optout"
+  #   user_data = handle_slack_token(params[:code], ENV["SLACK_REDIRECT_URL"])
 
-    #   if user_data
-    #     OptOut.upsert({"slack_id" => user_data["id"]}, %w(slack_id))
-    #     erb :optout_success
-    #   else
-    #     @error = "slack auth failed"
-    #     erb :optout_error
-    #   end
-    when "me"
-      user_data = handle_slack_token(params[:code], ENV["SLACK_REDIRECT_URL"])
+  #   if user_data
+  #     OptOut.upsert({"slack_id" => user_data["id"]}, %w(slack_id))
+  #     erb :optout_success
+  #   else
+  #     @error = "slack auth failed"
+  #     erb :optout_error
+  #   end
+  when "me"
+    user_data = handle_slack_token(params[:code], ENV["SLACK_REDIRECT_URL"])
 
-      if user_data
-        person = Person.find_or_create_by_slack_id(user_data["id"])
-        redirect "/me/#{person["rndK"]}"
-      else
-        @error = "couldn't sign you in..?"
-        erb :error
-      end
-        else
-      @error = "what are you trying to do?"
+    if user_data
+      person = Person.find_or_create_by_slack_id(user_data["id"])
+      redirect "/me/#{person["rndK"]}"
+    else
+      @error = "couldn't sign you in..?"
       erb :error
     end
+  else
+    @error = "what are you trying to do?"
+    erb :error
+  end
 end
 
 helpers do
@@ -124,17 +135,17 @@ helpers do
   end
 end
 
-before '/me/:rndK*' do
+before "/me/:rndK*" do
   set_person
 end
 
-get '/me/:rndK' do
+get "/me/:rndK" do
   erb :me
 end
 
-post '/me/:rndK' do
+post "/me/:rndK" do
   if params[:opt]
-  case params[:opt]
+    case params[:opt]
     when "in"
       @person["status"] = "opted_in"
       @flash = "you're in!"
