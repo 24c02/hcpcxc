@@ -112,6 +112,38 @@ get "/generate-csv" do
   csv
 end
 
+get "/apply-blazer" do
+  erb :admin_apply_blazer, layout: :layout_admin
+end
+
+post "/apply-blazer" do
+  data = params[:data]
+  autonumbers = []
+  ids = []
+
+  data.lines.each do |line|
+    line.strip!
+    line =~ /hcpcxc #(\d+)/
+    if $1
+      autonumbers << $1
+    else
+      line =~ /hcpcxc rec(.+)/
+      ids << "rec#{$1}"
+    end
+  end
+  formula = "AND(OR(#{[autonumbers.map { |n| "id='#{n}'" }.join(","), ids.map { |n| "RECORD_ID() = '#{n}'" }.join(",")].join(",")}), status='awaiting_mailout')"
+  puts formula
+  relevant_recs = Postcard.where(formula)
+
+  relevant_recs.each do |rec|
+    rec["status"] = "mailed"
+  end
+
+  Postcard.batch_save(relevant_recs)
+  @flash = "blazer applied!"
+  redirect "/"
+end
+
 post "/mark-mailed" do
   pending = Postcard.where("status = 'awaiting_mailout'")
   pending.each { |p| p["status"] = "mailed" }
