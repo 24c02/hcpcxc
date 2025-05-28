@@ -17,12 +17,21 @@
       hange
       <sup>(new 2025!)</sup>
     </div>
-    <% if @flash %>
-      <div style="color: maroon; border: 1px solid maroon; padding: 10px; margin: 10px;">
-        <%= @flash %>
-      </div>
-    <% end %>
-    <h3><%= @count %> <%= "postcard".pluralize(@count) %> served and counting (<%= number_to_currency(@postage_amount) %> in postage)...</h3>
-    <%= yield %>
-  </body>
-</html>
+    <div class="deprecation">
+      <p>
+        <strong>it was fun while it lasted!</strong>
+        this program has reached its conclusion as of 2025-05-28. 
+        <br/>
+        thank you so much if you participated!
+        next Mail Thing is coming....real soon now <3.
+        </p>
+        </div>
+        <% if @flash %>
+          <div style="color: maroon; border: 1px solid maroon; padding: 10px; margin: 10px;">
+            <%= @flash %>
+          </div>
+        <% end %>
+        <h3><%= @count %> <%= "postcard".pluralize(@count) %> served and counting (<%= number_to_currency(@postage_amount) %> in postage)...</h3>
+        <%= yield %>
+      </body>
+    </html>

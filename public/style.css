@@ -105,3 +105,11 @@ pre {
 .header>h1 {
     display: inline;
 }
+
+.deprecation {
+    color: red;
+    border: 2px dashed red;
+    padding: 0 20px;
+    margin: 10px;
+    /* text-align: center; */
+}
